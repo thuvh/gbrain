@@ -286,6 +286,7 @@ async function runExplain(args: string[]): Promise<void> {
     DEEPSEEK_API_KEY: !!process.env.DEEPSEEK_API_KEY,
     GROQ_API_KEY: !!process.env.GROQ_API_KEY,
     TOGETHER_API_KEY: !!process.env.TOGETHER_API_KEY,
+    FPT_API_KEY: !!process.env.FPT_API_KEY,
   };
 
   // Parallel probes for local providers (1s timeout each)
@@ -402,6 +403,7 @@ function prosFor(r: Recipe, touchpoint: TouchpointFilter): string[] {
     else if (r.id === 'deepseek') out.push('25-40x cheaper than Anthropic', 'Strong reasoning');
     else if (r.id === 'groq') out.push('500 tok/s inference', 'Cheap fallback');
     else if (r.id === 'together') out.push('Open-weights house', 'Llama / Qwen / Mixtral');
+    else if (r.id === 'fpt-marketplace') out.push('Vietnamese LLMs (SaoLa)', 'DeepSeek + Llama hosted in Vietnam');
     return out;
   }
   if (r.id === 'openai') out.push('Default', 'High quality', 'Wide compatibility');
@@ -410,6 +412,7 @@ function prosFor(r: Recipe, touchpoint: TouchpointFilter): string[] {
   else if (r.id === 'ollama') out.push('Local', 'Free', 'Private');
   else if (r.id === 'voyage') out.push('Best rerank pairing');
   else if (r.id === 'litellm') out.push('Universal coverage (Bedrock/Vertex/Azure/any)');
+  else if (r.id === 'fpt-marketplace') out.push('Vietnamese-optimized embeddings', 'FPT Cloud hosted');
   return out;
 }
 
@@ -439,6 +442,10 @@ function pickRecommended(options: ProviderOption[], env: Record<string, boolean>
   if (env.VOYAGE_API_KEY) {
     const voyage = embOpts.find(o => o.id.startsWith('voyage:'));
     if (voyage) return { id: voyage.id, reason: 'VOYAGE_API_KEY set — Voyage at 1024 dims.' };
+  }
+  if (env.FPT_API_KEY) {
+    const fpt = embOpts.find(o => o.id.startsWith('fpt-marketplace:'));
+    if (fpt) return { id: fpt.id, reason: 'FPT_API_KEY set — FPT AI Marketplace with Vietnamese-optimized embeddings.' };
   }
   // Nothing ready. Recommend OpenAI as the lowest-friction path.
   return {
